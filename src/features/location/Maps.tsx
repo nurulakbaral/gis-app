@@ -1,22 +1,21 @@
 import * as React from 'react'
-import L from 'leaflet'
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents, MapContainerProps } from 'react-leaflet'
+import { Icon } from 'leaflet'
+import { MapContainer, TileLayer, MapContainerProps, GeoJSON, LayersControl, Popup, Marker } from 'react-leaflet'
 
-function LocationMarker() {
-  let icon = L.icon({ iconUrl: '/icons/marker-icon.png' })
-  let [position, _setPosition] = React.useState<any>([-6.2426, 106.9045])
-  let _mapEvent = useMapEvents({
-    zoomend(e) {},
-    click() {},
-    locationfound(e) {},
-  })
+const IconPin = new Icon({
+  iconUrl: '/icons/icon-pin.png',
+  iconSize: [32, 32],
+})
 
-  return position === null ? null : (
-    <Marker position={position} icon={icon}>
-      <Popup>You are here</Popup>
-    </Marker>
-  )
-}
+const IconIndonesia = new Icon({
+  iconUrl: '/icons/icon-indonesia.png',
+  iconSize: [32, 32],
+})
+
+const IconMonas = new Icon({
+  iconUrl: '/icons/icon-monas.png',
+  iconSize: [32, 32],
+})
 
 export interface MapsProps extends MapContainerProps {}
 
@@ -24,7 +23,7 @@ export default function Maps({ ...props }: MapsProps) {
   return (
     <MapContainer
       className='h-[640px] w-full rounded-lg'
-      center={[-6.2426, 106.9045]}
+      center={[-2.5489, 118.0149]}
       zoom={5}
       scrollWheelZoom={true}
       {...props}
@@ -33,7 +32,42 @@ export default function Maps({ ...props }: MapsProps) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
       />
-      <LocationMarker />
+
+      <Marker icon={IconPin} position={[-6.194883674005233, 106.8178317822333]}>
+        <Popup>
+          <input type='text' className='w-full' />
+        </Popup>
+      </Marker>
+
+      <Marker icon={IconPin} position={[-6.916050781473794, 107.61157008179057]}>
+        <Popup>
+          <input type='text' className='w-full' />
+        </Popup>
+      </Marker>
+
+      <Marker icon={IconPin} position={[-8.407034444343934, 115.18446976008947]}>
+        <Popup>
+          <input type='text' className='w-full' />
+        </Popup>
+      </Marker>
+
+      <Marker icon={IconPin} position={[0.5839205467192294, 116.41894214826006]}>
+        <Popup>
+          <input type='text' className='w-full' />
+        </Popup>
+      </Marker>
+
+      <Marker icon={IconIndonesia} position={[-0.9607627964850126, 116.69823745742387]}>
+        <Popup>
+          <input type='text' className='w-full' />
+        </Popup>
+      </Marker>
+
+      <Marker icon={IconMonas} position={[-6.175125722515539, 106.82719571412338]}>
+        <Popup>
+          <input type='text' className='w-full' />
+        </Popup>
+      </Marker>
     </MapContainer>
   )
 }

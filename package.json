@@ -10,6 +10,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.5",
     "@mantine/core": "^7.13.2",
     "@mantine/hooks": "^7.13.2",
     "leaflet": "^1.9.4",
