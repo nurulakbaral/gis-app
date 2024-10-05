@@ -1,10 +1,14 @@
-import { Button } from '@mantine/core'
+import dynamic from 'next/dynamic'
+
+const Maps = dynamic(() => import('~/src/features/location/Maps'), {
+  ssr: false,
+  loading: () => <p>Loading...</p>,
+})
 
 export default function Home() {
   return (
     <div>
-      <Button>Hello World!</Button>
-      <h1 className='text-green-600'>Hello</h1>
+      <Maps />
     </div>
   )
 }
