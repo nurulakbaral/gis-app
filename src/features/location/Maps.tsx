@@ -2,14 +2,39 @@ import * as React from 'react'
 import { Icon, LatLngExpression } from 'leaflet'
 import { MapContainer, TileLayer, MapContainerProps, LayerGroup, Marker, LayersControl } from 'react-leaflet'
 import { useDisclosure } from '@mantine/hooks'
-import { type DrawerRootProps, Drawer, Box } from '@mantine/core'
+import { type DrawerRootProps, Drawer, Box, Modal, Button, ModalProps } from '@mantine/core'
 import Image from 'next/image'
+import { PencilIcon } from '@heroicons/react/16/solid'
 
 /**
  * ==============================
  * Layer Edit
  * ==============================
  */
+
+export interface TLayerEditProps extends Omit<ModalProps, 'opened' | 'onClose'> {
+  layerDetail: null | TMapLayer
+}
+
+export function LayerEdit({ layerDetail, ...props }: TLayerEditProps) {
+  const [opened, { open, close }] = useDisclosure(false)
+
+  return (
+    <React.Fragment>
+      <Modal.Root {...props} opened={opened} onClose={close}>
+        <Modal.Overlay className='z-[99999999999]' />
+
+        <Modal.Content className='z-[99999999999]'>
+          <p>{layerDetail?.description}</p>
+        </Modal.Content>
+      </Modal.Root>
+
+      <Button leftSection={<PencilIcon className='w-4 h-4 text-white' />} size='xs' onClick={open}>
+        Edit Layer
+      </Button>
+    </React.Fragment>
+  )
+}
 
 /**
  * ==============================
@@ -26,7 +51,7 @@ export function LayerDetail({ layerDetail, useDisclosureState, ...props }: TLaye
   const [ope, { close }] = useDisclosureState
 
   return (
-    <Drawer.Root className='z-[9999999999]' {...props} onClose={close} opened={ope}>
+    <Drawer.Root {...props} onClose={close} opened={ope}>
       <Drawer.Content className='z-[9999999999]'>
         <Box className='relative'>
           <Image
@@ -39,11 +64,14 @@ export function LayerDetail({ layerDetail, useDisclosureState, ...props }: TLaye
           <Drawer.CloseButton className='absolute top-2 right-2 bg-white rounded-full' />
         </Box>
 
-        <Drawer.Header>
+        <Drawer.Header className='flex items-center justify-between'>
           <Drawer.Title className='text-3xl'>{layerDetail?.name}</Drawer.Title>
+          <LayerEdit layerDetail={layerDetail} />
         </Drawer.Header>
 
-        <Drawer.Body>{layerDetail?.description}</Drawer.Body>
+        <Drawer.Body>
+          <Box>{layerDetail?.description}</Box>
+        </Drawer.Body>
       </Drawer.Content>
     </Drawer.Root>
   )
