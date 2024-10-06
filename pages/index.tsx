@@ -1,6 +1,8 @@
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
-import { TMapLayer } from '~/src/features'
+import React from 'react'
+import { TGeoLayer } from '~/src/features'
+import { useStoreLocation } from '~/src/features/location/store'
 
 const Fixtures = {
   MapLayers: [
@@ -64,7 +66,7 @@ const Fixtures = {
         'Nusantara (Indonesian pronunciation: [nusanˈtara]), officially the Capital City of Nusantara (Indonesian: Ibu Kota Nusantara, abbreviated IKN), is the future capital of Indonesia, located between Kutai Kartanegara Regency and Penajam North Paser Regency, East Kalimantan, on the province of Borneo.',
       type: 'location',
     },
-  ] as Array<TMapLayer>,
+  ] as Array<TGeoLayer>,
 }
 
 const Maps = dynamic(() => import('~/src/features/location/Maps'), {
@@ -73,6 +75,12 @@ const Maps = dynamic(() => import('~/src/features/location/Maps'), {
 })
 
 export default function Home() {
+  const actions = useStoreLocation((states) => states.actions)
+
+  React.useEffect(() => {
+    actions.initGeoLayerList(Fixtures.MapLayers)
+  }, [actions])
+
   return (
     <section className='pt-6'>
       <Head>
@@ -84,7 +92,7 @@ export default function Home() {
       </div>
 
       <div>
-        <Maps layerList={Fixtures.MapLayers} />
+        <Maps />
       </div>
     </section>
   )

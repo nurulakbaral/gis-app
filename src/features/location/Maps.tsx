@@ -5,6 +5,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { type DrawerRootProps, Drawer, Box, Modal, Button, ModalProps } from '@mantine/core'
 import Image from 'next/image'
 import { PencilIcon } from '@heroicons/react/16/solid'
+import { useStoreLocation } from './store'
 
 /**
  * ==============================
@@ -12,11 +13,10 @@ import { PencilIcon } from '@heroicons/react/16/solid'
  * ==============================
  */
 
-export interface TLayerEditProps extends Omit<ModalProps, 'opened' | 'onClose'> {
-  layerDetail: null | TMapLayer
-}
+export interface TLayerEditProps extends Omit<ModalProps, 'opened' | 'onClose'> {}
 
-export function LayerEdit({ layerDetail, ...props }: TLayerEditProps) {
+export function LayerEdit({ ...props }: TLayerEditProps) {
+  const geoLayer = useStoreLocation((state) => state.stores.geoLayer)
   const [opened, { open, close }] = useDisclosure(false)
 
   return (
@@ -25,7 +25,7 @@ export function LayerEdit({ layerDetail, ...props }: TLayerEditProps) {
         <Modal.Overlay className='z-[99999999999]' />
 
         <Modal.Content className='z-[99999999999]'>
-          <p>{layerDetail?.description}</p>
+          <p>{geoLayer?.description}</p>
         </Modal.Content>
       </Modal.Root>
 
@@ -43,11 +43,11 @@ export function LayerEdit({ layerDetail, ...props }: TLayerEditProps) {
  */
 
 export interface TLayerDetailProps extends Omit<DrawerRootProps, 'opened' | 'onClose'> {
-  layerDetail: null | TMapLayer
   useDisclosureState: ReturnType<typeof useDisclosure>
 }
 
-export function LayerDetail({ layerDetail, useDisclosureState, ...props }: TLayerDetailProps) {
+export function LayerDetail({ useDisclosureState, ...props }: TLayerDetailProps) {
+  const geoLayer = useStoreLocation((state) => state.stores.geoLayer)
   const [ope, { close }] = useDisclosureState
 
   return (
@@ -56,8 +56,8 @@ export function LayerDetail({ layerDetail, useDisclosureState, ...props }: TLaye
         <Box className='relative'>
           <Image
             className='w-full'
-            src={layerDetail?.imageUrl || ''}
-            alt={layerDetail?.name || ''}
+            src={geoLayer?.imageUrl || ''}
+            alt={geoLayer?.name || ''}
             width={200}
             height={200}
           />
@@ -65,12 +65,12 @@ export function LayerDetail({ layerDetail, useDisclosureState, ...props }: TLaye
         </Box>
 
         <Drawer.Header className='flex items-center justify-between'>
-          <Drawer.Title className='text-3xl'>{layerDetail?.name}</Drawer.Title>
-          <LayerEdit layerDetail={layerDetail} />
+          <Drawer.Title className='text-3xl'>{geoLayer?.name}</Drawer.Title>
+          <LayerEdit />
         </Drawer.Header>
 
         <Drawer.Body>
-          <Box>{layerDetail?.description}</Box>
+          <Box>{geoLayer?.description}</Box>
         </Drawer.Body>
       </Drawer.Content>
     </Drawer.Root>
@@ -98,7 +98,7 @@ const IconIndonesia = new Icon({
   iconSize: [32, 32],
 })
 
-export type TMapLayer = {
+export type TGeoLayer = {
   id: string
   name: string
   iconName: 'point' | 'monas' | 'indonesia'
@@ -108,13 +108,10 @@ export type TMapLayer = {
   type: 'province' | 'location'
 }
 
-export interface TMapsProps extends MapContainerProps {
-  layerList: Array<TMapLayer>
-}
+export interface TMapsProps extends MapContainerProps {}
 
-export default function Maps({ layerList, ...props }: TMapsProps) {
-  const [stateLayerList, setStateLayerList] = React.useState(layerList)
-  const [currentLayer, setCurrentLayer] = React.useState<null | TMapLayer>(null)
+export default function Maps({ ...props }: TMapsProps) {
+  const { stores, actions } = useStoreLocation()
   const [opened, { open, close, toggle }] = useDisclosure(false)
   const Icons = {
     point: IconPin,
@@ -124,7 +121,7 @@ export default function Maps({ layerList, ...props }: TMapsProps) {
 
   return (
     <React.Fragment>
-      <LayerDetail layerDetail={currentLayer} useDisclosureState={[opened, { open, close, toggle }]} />
+      <LayerDetail useDisclosureState={[opened, { open, close, toggle }]} />
 
       <MapContainer
         className='h-[calc(100vh-6rem)] w-full'
@@ -141,17 +138,17 @@ export default function Maps({ layerList, ...props }: TMapsProps) {
         <LayersControl position='topright'>
           <LayersControl.Overlay name='Provinces Layer'>
             <LayerGroup>
-              {stateLayerList
-                .filter(({ type }) => type === 'province')
-                .map(({ id, name, iconName, position, imageUrl, description, type }) => (
+              {stores.geoLayerList
+                ?.filter(({ type }) => type === 'province')
+                .map((geoLayer) => (
                   <Marker
-                    key={id}
-                    icon={Icons[iconName]}
-                    position={position}
+                    key={geoLayer.id}
+                    icon={Icons[geoLayer.iconName]}
+                    position={geoLayer.position}
                     eventHandlers={{
                       click: () => {
                         open()
-                        setCurrentLayer({ id, name, iconName, position, imageUrl, description, type })
+                        actions.setGeoLayerDetail(geoLayer)
                       },
                     }}
                   />
@@ -161,17 +158,17 @@ export default function Maps({ layerList, ...props }: TMapsProps) {
 
           <LayersControl.Overlay name='Locations Layer'>
             <LayerGroup>
-              {stateLayerList
-                .filter(({ type }) => type === 'location')
-                .map(({ id, name, iconName, position, imageUrl, description, type }) => (
+              {stores.geoLayerList
+                ?.filter(({ type }) => type === 'location')
+                .map((geoLayer) => (
                   <Marker
-                    key={id}
-                    icon={Icons[iconName]}
-                    position={position}
+                    key={geoLayer.id}
+                    icon={Icons[geoLayer.iconName]}
+                    position={geoLayer.position}
                     eventHandlers={{
                       click: () => {
                         open()
-                        setCurrentLayer({ id, name, iconName, position, imageUrl, description, type })
+                        actions.setGeoLayerDetail(geoLayer)
                       },
                     }}
                   />
