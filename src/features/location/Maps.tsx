@@ -2,10 +2,22 @@ import * as React from 'react'
 import { Icon, LatLngExpression } from 'leaflet'
 import { MapContainer, TileLayer, MapContainerProps, LayerGroup, Marker, LayersControl } from 'react-leaflet'
 import { useDisclosure } from '@mantine/hooks'
-import { type DrawerRootProps, Drawer, Box, Modal, Button, ModalProps } from '@mantine/core'
+import {
+  type DrawerRootProps,
+  Drawer,
+  Box,
+  Modal,
+  Button,
+  ModalProps,
+  Title,
+  Input,
+  TextInput,
+  Textarea,
+} from '@mantine/core'
 import Image from 'next/image'
 import { PencilIcon } from '@heroicons/react/16/solid'
 import { useStoreLocation } from './store'
+import { useForm } from '@mantine/form'
 
 /**
  * ==============================
@@ -16,21 +28,60 @@ import { useStoreLocation } from './store'
 export interface TLayerEditProps extends Omit<ModalProps, 'opened' | 'onClose'> {}
 
 export function LayerEdit({ ...props }: TLayerEditProps) {
+  const actions = useStoreLocation((states) => states.actions)
   const geoLayer = useStoreLocation((state) => state.stores.geoLayer)
+  const form = useForm()
   const [opened, { open, close }] = useDisclosure(false)
+
+  React.useEffect(() => {
+    form.setValues({ locationTitle: geoLayer?.name, description: geoLayer?.description })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoLayer])
 
   return (
     <React.Fragment>
-      <Modal.Root {...props} opened={opened} onClose={close}>
+      <Modal.Root {...props} opened={opened} onClose={close} size='lg'>
         <Modal.Overlay className='z-[99999999999]' />
 
-        <Modal.Content className='z-[99999999999]'>
-          <p>{geoLayer?.description}</p>
+        <Modal.Content className='z-[99999999999] p-4 mt-10'>
+          <Box>
+            <Title className='font-medium' order={2}>
+              Edit Geo Layer
+            </Title>
+          </Box>
+
+          <form
+            onSubmit={form.onSubmit((values) => {
+              geoLayer &&
+                actions.editGeoLayer({ ...geoLayer, name: values.locationTitle, description: values.description })
+              close()
+            })}
+          >
+            <TextInput
+              className='mt-6'
+              label='Location Title'
+              placeholder='Enter Location Title'
+              key={form.key('locationTitle')}
+              {...form.getInputProps('locationTitle')}
+            />
+
+            <Textarea
+              label='Description'
+              placeholder='Enter Description'
+              rows={6}
+              key={form.key('description')}
+              {...form.getInputProps('description')}
+            />
+
+            <Button className='w-full mt-8' type='submit'>
+              Edit
+            </Button>
+          </form>
         </Modal.Content>
       </Modal.Root>
 
       <Button leftSection={<PencilIcon className='w-4 h-4 text-white' />} size='xs' onClick={open}>
-        Edit Layer
+        Edit
       </Button>
     </React.Fragment>
   )
@@ -65,7 +116,7 @@ export function LayerDetail({ useDisclosureState, ...props }: TLayerDetailProps)
         </Box>
 
         <Drawer.Header className='flex items-center justify-between'>
-          <Drawer.Title className='text-3xl'>{geoLayer?.name}</Drawer.Title>
+          <Drawer.Title className='text-3xl line-clamp-1'>{geoLayer?.name}</Drawer.Title>
           <LayerEdit />
         </Drawer.Header>
 
