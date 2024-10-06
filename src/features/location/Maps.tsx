@@ -10,14 +10,84 @@ import {
   Button,
   ModalProps,
   Title,
-  Input,
+  Text,
   TextInput,
   Textarea,
 } from '@mantine/core'
 import Image from 'next/image'
-import { PencilIcon } from '@heroicons/react/16/solid'
+import { PencilIcon, TrashIcon } from '@heroicons/react/16/solid'
 import { useStoreLocation } from './store'
 import { useForm } from '@mantine/form'
+
+/**
+ * ==============================
+ * Layer Delete
+ * ==============================
+ */
+
+export interface TLayerDeleteProps extends Omit<ModalProps, 'opened' | 'onClose'> {
+  useDisclosureState: {
+    closeDetail: () => void
+  }
+}
+
+export function LayerDelete({ useDisclosureState, ...props }: TLayerDeleteProps) {
+  const actions = useStoreLocation((states) => states.actions)
+  const geoLayer = useStoreLocation((state) => state.stores.geoLayer)
+  const [opened, { open, close }] = useDisclosure(false)
+
+  return (
+    <React.Fragment>
+      <Modal.Root {...props} opened={opened} onClose={close} size='lg'>
+        <Modal.Overlay className='z-[99999999999]' />
+
+        <Modal.Content className='z-[99999999999] p-4 mt-10'>
+          <Box>
+            <Title className='font-medium' order={2}>
+              Delete Geo Layer
+            </Title>
+          </Box>
+
+          <Box className='my-4'>
+            <Text className='text-lg'>
+              Are you sure you want to delete <b>{geoLayer?.name}</b> ?
+            </Text>
+          </Box>
+
+          <Box className='flex items-center gap-3'>
+            <Button className='w-full' size='xs' onClick={close}>
+              Cancel
+            </Button>
+
+            <Button
+              color='red'
+              className='w-full'
+              leftSection={<TrashIcon className='w-4 h-4 text-white' />}
+              size='xs'
+              onClick={() => {
+                geoLayer && actions.deleteGeoLayer(geoLayer)
+                close()
+                useDisclosureState.closeDetail()
+              }}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Modal.Content>
+      </Modal.Root>
+
+      <Button
+        color='red'
+        className='w-full'
+        leftSection={<TrashIcon className='w-4 h-4 text-white' />}
+        size='xs'
+        onClick={open}
+      >
+        Delete Layer
+      </Button>
+    </React.Fragment>
+  )
+}
 
 /**
  * ==============================
@@ -80,7 +150,7 @@ export function LayerEdit({ ...props }: TLayerEditProps) {
         </Modal.Content>
       </Modal.Root>
 
-      <Button leftSection={<PencilIcon className='w-4 h-4 text-white' />} size='xs' onClick={open}>
+      <Button className='w-full' leftSection={<PencilIcon className='w-4 h-4 text-white' />} size='xs' onClick={open}>
         Edit
       </Button>
     </React.Fragment>
@@ -105,19 +175,31 @@ export function LayerDetail({ useDisclosureState, ...props }: TLayerDetailProps)
     <Drawer.Root {...props} onClose={close} opened={ope}>
       <Drawer.Content className='z-[9999999999]'>
         <Box className='relative'>
-          <Image
-            className='w-full'
-            src={geoLayer?.imageUrl || ''}
-            alt={geoLayer?.name || ''}
-            width={200}
-            height={200}
-          />
+          {geoLayer?.imageUrl && (
+            <Image
+              className='w-full'
+              src={geoLayer?.imageUrl || ''}
+              alt={geoLayer?.name || ''}
+              width={200}
+              height={200}
+            />
+          )}
           <Drawer.CloseButton className='absolute top-2 right-2 bg-white rounded-full' />
         </Box>
 
-        <Drawer.Header className='flex items-center justify-between'>
-          <Drawer.Title className='text-3xl line-clamp-1'>{geoLayer?.name}</Drawer.Title>
-          <LayerEdit />
+        <Drawer.Header className='flex flex-col gap-4'>
+          <Box>
+            <Drawer.Title className='text-3xl line-clamp-1'>{geoLayer?.name}</Drawer.Title>
+          </Box>
+
+          <Box className='flex items-center gap-3 w-full'>
+            <LayerEdit />
+            <LayerDelete
+              useDisclosureState={{
+                closeDetail: close,
+              }}
+            />
+          </Box>
         </Drawer.Header>
 
         <Drawer.Body>
