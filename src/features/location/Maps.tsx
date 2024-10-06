@@ -2,8 +2,58 @@ import * as React from 'react'
 import { Icon, LatLngExpression } from 'leaflet'
 import { MapContainer, TileLayer, MapContainerProps, LayerGroup, Marker, LayersControl } from 'react-leaflet'
 import { useDisclosure } from '@mantine/hooks'
-import { Drawer, Button, Box } from '@mantine/core'
+import { type DrawerRootProps, Drawer, Box } from '@mantine/core'
 import Image from 'next/image'
+
+/**
+ * ==============================
+ * Layer Edit
+ * ==============================
+ */
+
+/**
+ * ==============================
+ * Layer Detail
+ * ==============================
+ */
+
+export interface TLayerDetailProps extends Omit<DrawerRootProps, 'opened' | 'onClose'> {
+  layerDetail: null | TMapLayer
+  useDisclosureState: ReturnType<typeof useDisclosure>
+}
+
+export function LayerDetail({ layerDetail, useDisclosureState, ...props }: TLayerDetailProps) {
+  const [ope, { close }] = useDisclosureState
+
+  return (
+    <Drawer.Root className='z-[9999999999]' {...props} onClose={close} opened={ope}>
+      <Drawer.Content className='z-[9999999999]'>
+        <Box className='relative'>
+          <Image
+            className='w-full'
+            src={layerDetail?.imageUrl || ''}
+            alt={layerDetail?.name || ''}
+            width={200}
+            height={200}
+          />
+          <Drawer.CloseButton className='absolute top-2 right-2 bg-white rounded-full' />
+        </Box>
+
+        <Drawer.Header>
+          <Drawer.Title className='text-3xl'>{layerDetail?.name}</Drawer.Title>
+        </Drawer.Header>
+
+        <Drawer.Body>{layerDetail?.description}</Drawer.Body>
+      </Drawer.Content>
+    </Drawer.Root>
+  )
+}
+
+/**
+ * ==============================
+ * Maps
+ * ==============================
+ */
 
 const IconPin = new Icon({
   iconUrl: '/icons/icon-pin.png',
@@ -35,8 +85,9 @@ export interface TMapsProps extends MapContainerProps {
 }
 
 export default function Maps({ layerList, ...props }: TMapsProps) {
+  const [stateLayerList, setStateLayerList] = React.useState(layerList)
   const [currentLayer, setCurrentLayer] = React.useState<null | TMapLayer>(null)
-  const [opened, { open, close }] = useDisclosure(false)
+  const [opened, { open, close, toggle }] = useDisclosure(false)
   const Icons = {
     point: IconPin,
     monas: IconMonas,
@@ -45,26 +96,7 @@ export default function Maps({ layerList, ...props }: TMapsProps) {
 
   return (
     <React.Fragment>
-      <Drawer.Root className='z-[9999999999]' opened={opened} onClose={close}>
-        <Drawer.Content className='z-[9999999999]'>
-          <Box className='relative'>
-            <Image
-              className='w-full'
-              src={currentLayer?.imageUrl || ''}
-              alt={currentLayer?.name || ''}
-              width={200}
-              height={200}
-            />
-            <Drawer.CloseButton className='absolute top-2 right-2 bg-white rounded-full' />
-          </Box>
-
-          <Drawer.Header>
-            <Drawer.Title className='text-3xl'>{currentLayer?.name}</Drawer.Title>
-          </Drawer.Header>
-
-          <Drawer.Body>{currentLayer?.description}</Drawer.Body>
-        </Drawer.Content>
-      </Drawer.Root>
+      <LayerDetail layerDetail={currentLayer} useDisclosureState={[opened, { open, close, toggle }]} />
 
       <MapContainer
         className='h-[calc(100vh-6rem)] w-full'
@@ -81,7 +113,7 @@ export default function Maps({ layerList, ...props }: TMapsProps) {
         <LayersControl position='topright'>
           <LayersControl.Overlay name='Provinces Layer'>
             <LayerGroup>
-              {layerList
+              {stateLayerList
                 .filter(({ type }) => type === 'province')
                 .map(({ id, name, iconName, position, imageUrl, description, type }) => (
                   <Marker
@@ -101,7 +133,7 @@ export default function Maps({ layerList, ...props }: TMapsProps) {
 
           <LayersControl.Overlay name='Locations Layer'>
             <LayerGroup>
-              {layerList
+              {stateLayerList
                 .filter(({ type }) => type === 'location')
                 .map(({ id, name, iconName, position, imageUrl, description, type }) => (
                   <Marker
